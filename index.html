@@ -88,6 +88,7 @@
   let countdownTimer;
   const INACTIVITY_LIMIT = 0.25 * 60 * 1000; // 30 minutes
   let remainingTime = INACTIVITY_LIMIT;
+  let isLoggedOut = false; // Add a flag to check if the user is already logged out
 
   // Format time as mm:ss
   function formatTime(ms) {
@@ -111,7 +112,9 @@
 
       if (remainingTime <= 0) {
         clearInterval(countdownTimer);
-        logoutUser(); // Trigger logout when time is up
+        if (!isLoggedOut) {
+          logoutUser(); // Trigger logout when time is up
+        }
       }
     }, 1000);
   }
@@ -128,6 +131,9 @@
 
   // Log out user
   async function logoutUser() {
+    if (isLoggedOut) return; // Prevent multiple logouts
+    isLoggedOut = true; // Set the flag to true
+
     // Hide original content and show logout message
     document.getElementById('app').style.display = 'none';
     document.getElementById('logoutMessage').style.display = 'block';
@@ -154,8 +160,28 @@
   }
 
   // Handle logout on tab close using sendBeacon
+  window.addEventListener('beforeunload', (event) => {
+    if (!isLoggedOut) {
+      isLoggedOut = true; // Set the flag to true
+      const data = JSON.stringify({
+        "username": "PP112444",
+        "logout": "Yes"
+      });
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = new URL('https://nrfsi.intalk.cc/dtr/kbrestapitest.php');
+      url.searchParams.append('Authorization', 'Bearer KBAG456123'); // Correct authorization format
+      navigator.sendBeacon(url, blob);
+    }
+  });
+
+  // Use visibilitychange event to handle tab close or window close
   window.addEventListener('beforeunload', () => {
-    logoutUser()
+    const data = JSON.stringify({
+      "username": "AT112444",
+      "logout": "Yes"
+    });
+
+    navigator.sendBeacon('https://nrfsi.intalk.cc/dtr/kbrestapitest.php', data);
   });
 
   // Mock form submission
